@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:15-alpine        # official postgres image
+    container_name: rideshare-postgres
+    environment:
+      POSTGRES_USER: rideshare
+      POSTGRES_PASSWORD: rideshare123
+      POSTGRES_DB: trips_db          # database for trip service
+    ports:
+      - "5432:5432"                  # expose to your machine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # persist data
+
+  trip-service:
+    build: ./trip-service            # build using trip-service/Dockerfile
+    container_name: rideshare-trip
+    ports:
+      - "3002:3002"                  # expose to your machine
+    environment:
+      PORT: 3002
+      DATABASE_URL: postgresql://rideshare:rideshare123@postgres:5432/trips_db
+    depends_on:
+      - postgres                     # start postgres first, then this
+
+volumes:
+  postgres_data:                     # named volume — data survives restarts
